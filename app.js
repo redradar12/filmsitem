@@ -15,6 +15,9 @@ const SERVERS = [
 
 const app = document.getElementById('app');
 const searchInput = document.getElementById('search');
+const menuToggle = document.getElementById('menuToggle');
+const mainNav = document.getElementById('mainNav');
+const logo = document.querySelector('.logo');
 
 let renderToken = 0;
 let searchTimer = null;
@@ -82,6 +85,21 @@ function showError(error) {
   if (error) console.error(error);
 }
 
+function closeMenu() {
+  menuToggle.setAttribute('aria-expanded', 'false');
+  menuToggle.setAttribute('aria-label', 'Menüyü aç');
+  mainNav.classList.remove('open');
+}
+
+function updateNav(section) {
+  mainNav.querySelectorAll('a').forEach((link) => {
+    const active = link.dataset.nav === section;
+    link.classList.toggle('active', active);
+    if (active) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+  });
+}
+
 async function tmdb(path, params = {}) {
   const url = new URL(API + path);
   const query = new URLSearchParams();
@@ -131,11 +149,17 @@ async function renderHome(token) {
         <div class="row">${trend.map((item) => cardHTML(item, item.media_type)).join('')}</div>
       </section>
       <section class="row-section">
-        <div class="section-head"><h2>Popüler Filmler</h2></div>
+        <div class="section-head">
+          <h2>Popüler Filmler</h2>
+          <a class="see-all" href="#/filmler">Tümü →</a>
+        </div>
         <div class="row">${(movies.results || []).map((item) => cardHTML(item, 'movie')).join('')}</div>
       </section>
       <section class="row-section">
-        <div class="section-head"><h2>Popüler Diziler</h2></div>
+        <div class="section-head">
+          <h2>Popüler Diziler</h2>
+          <a class="see-all" href="#/diziler">Tümü →</a>
+        </div>
         <div class="row">${(shows.results || []).map((item) => cardHTML(item, 'tv')).join('')}</div>
       </section>`;
     document.title = 'FilmKatalog — Film ve Dizi Kataloğu';
@@ -255,12 +279,66 @@ async function renderTv(id, season, episode, token) {
   }
 }
 
+async function renderList(type, token) {
+  const isMovie = type === 'movie';
+  const endpoint = isMovie ? '/movie/popular' : '/tv/popular';
+  const heading = isMovie ? 'Filmler' : 'Diziler';
+
+  app.innerHTML = '<div class="loader">Yükleniyor…</div>';
+  try {
+    const data = await tmdb(endpoint);
+    if (token !== renderToken) return;
+
+    let page = data.page || 1;
+    const totalPages = data.total_pages || 1;
+
+    app.innerHTML = `
+      <section class="search-section">
+        <h2>${heading}</h2>
+        <div class="grid" id="listGrid">${(data.results || []).map((item) => cardHTML(item, type)).join('')}</div>
+        <div class="more-wrap">${page < totalPages ? '<button class="more-btn" id="moreBtn" type="button">Daha fazla</button>' : ''}</div>
+      </section>`;
+    document.title = `${heading} — FilmKatalog`;
+
+    const moreBtn = document.getElementById('moreBtn');
+    if (moreBtn) {
+      moreBtn.addEventListener('click', async () => {
+        moreBtn.disabled = true;
+        moreBtn.textContent = 'Yükleniyor…';
+        try {
+          const next = await tmdb(endpoint, { page: page + 1 });
+          if (token !== renderToken) return;
+          page = next.page || page + 1;
+          document.getElementById('listGrid').insertAdjacentHTML(
+            'beforeend',
+            (next.results || []).map((item) => cardHTML(item, type)).join('')
+          );
+          if (page >= (next.total_pages || totalPages)) {
+            moreBtn.remove();
+          } else {
+            moreBtn.disabled = false;
+            moreBtn.textContent = 'Daha fazla';
+          }
+        } catch (error) {
+          moreBtn.disabled = false;
+          moreBtn.textContent = 'Tekrar dene';
+          console.error(error);
+        }
+      });
+    }
+  } catch (error) {
+    if (token !== renderToken) return;
+    showError(error);
+  }
+}
+
 async function runSearch(query, token) {
   if (!query) {
     await route();
     return;
   }
   app.innerHTML = '<div class="loader">Aranıyor…</div>';
+  updateNav('');
   try {
     const data = await tmdb('/search/multi', { query, include_adult: false });
     if (token !== renderToken) return;
@@ -289,23 +367,40 @@ function parseHash() {
 }
 
 async function route() {
+  closeMenu();
+  window.scrollTo(0, 0);
+  if (searchInput.value) searchInput.value = '';
   const token = ++renderToken;
   const parts = parseHash();
 
   if (!parts.length) {
+    updateNav('home');
     await renderHome(token);
     return;
   }
+  if (parts[0] === 'filmler') {
+    updateNav('movies');
+    await renderList('movie', token);
+    return;
+  }
+  if (parts[0] === 'diziler') {
+    updateNav('shows');
+    await renderList('tv', token);
+    return;
+  }
   if (parts[0] === 'film' && parts[1]) {
+    updateNav('movies');
     await renderMovie(parts[1], token);
     return;
   }
   if (parts[0] === 'dizi' && parts[1]) {
+    updateNav('shows');
     const season = Number(parts[2]) || 1;
     const episode = Number(parts[3]) || 1;
     await renderTv(parts[1], season, episode, token);
     return;
   }
+  updateNav('home');
   await renderHome(token);
 }
 
@@ -316,6 +411,40 @@ searchInput.addEventListener('input', () => {
     const token = ++renderToken;
     runSearch(query, token);
   }, 400);
+});
+
+menuToggle.addEventListener('click', () => {
+  const open = menuToggle.getAttribute('aria-expanded') === 'true';
+  menuToggle.setAttribute('aria-expanded', String(!open));
+  menuToggle.setAttribute('aria-label', open ? 'Menüyü aç' : 'Menüyü kapat');
+  mainNav.classList.toggle('open', !open);
+});
+
+mainNav.addEventListener('click', (event) => {
+  const link = event.target.closest('a');
+  if (!link) return;
+  closeMenu();
+  if (location.hash === link.getAttribute('href')) {
+    event.preventDefault();
+    route();
+  }
+});
+
+logo.addEventListener('click', (event) => {
+  if (location.hash === logo.getAttribute('href')) {
+    event.preventDefault();
+    route();
+  }
+});
+
+document.addEventListener('click', (event) => {
+  if (!mainNav.classList.contains('open')) return;
+  if (mainNav.contains(event.target) || menuToggle.contains(event.target)) return;
+  closeMenu();
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') closeMenu();
 });
 
 window.addEventListener('hashchange', route);

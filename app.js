@@ -14,6 +14,57 @@ const SERVERS = [
   { n: 'Sunucu 5', m: 'https://www.2embed.cc/embed/{id}', t: 'https://www.2embed.cc/embedtv/{id}&s={s}&e={e}' },
 ];
 
+const GENRES = [
+  { key: 'aksiyon', name: 'Aksiyon', movie: 28, tv: 10759 },
+  { key: 'macera', name: 'Macera', movie: 12, tv: null },
+  { key: 'animasyon', name: 'Animasyon', movie: 16, tv: 16 },
+  { key: 'komedi', name: 'Komedi', movie: 35, tv: 35 },
+  { key: 'suc', name: 'Suç', movie: 80, tv: 80 },
+  { key: 'belgesel', name: 'Belgesel', movie: 99, tv: 99 },
+  { key: 'dram', name: 'Dram', movie: 18, tv: 18 },
+  { key: 'aile', name: 'Aile', movie: 10751, tv: 10751 },
+  { key: 'fantastik', name: 'Fantastik', movie: 14, tv: null },
+  { key: 'tarih', name: 'Tarih', movie: 36, tv: null },
+  { key: 'korku', name: 'Korku', movie: 27, tv: null },
+  { key: 'muzik', name: 'Müzik', movie: 10402, tv: null },
+  { key: 'gizem', name: 'Gizem', movie: 9648, tv: 9648 },
+  { key: 'romantik', name: 'Romantik', movie: 10749, tv: null },
+  { key: 'bilim-kurgu', name: 'Bilim Kurgu', movie: 878, tv: 10765 },
+  { key: 'gerilim', name: 'Gerilim', movie: 53, tv: null },
+  { key: 'savas', name: 'Savaş', movie: 10752, tv: 10768 },
+  { key: 'western', name: 'Western', movie: 37, tv: 37 },
+];
+
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: 12 }, (_, index) => CURRENT_YEAR - index);
+
+const MOVIE_FILTERS = [
+  { key: 'filmler', label: 'Popüler' },
+  { key: 'filmler/en-iyi', label: 'En İyi' },
+  { key: 'filmler/vizyonda', label: 'Vizyonda' },
+  { key: 'filmler/yakinda', label: 'Yakında' },
+  { key: 'filmler/trend', label: 'Trend' },
+];
+
+const TV_FILTERS = [
+  { key: 'diziler', label: 'Popüler' },
+  { key: 'diziler/en-iyi', label: 'En İyi' },
+  { key: 'diziler/yayinda', label: 'Yayında' },
+  { key: 'diziler/bugun', label: 'Bugün' },
+];
+
+const LIST_CONFIG = {
+  filmler: { type: 'movie', title: 'Popüler Filmler', endpoint: '/movie/popular' },
+  'filmler/en-iyi': { type: 'movie', title: 'En İyi Filmler', endpoint: '/movie/top_rated' },
+  'filmler/vizyonda': { type: 'movie', title: 'Vizyondaki Filmler', endpoint: '/movie/now_playing', params: { region: 'TR' } },
+  'filmler/yakinda': { type: 'movie', title: 'Yakında Vizyonda', endpoint: '/movie/upcoming', params: { region: 'TR' } },
+  'filmler/trend': { type: 'movie', title: 'Trend Filmler', endpoint: '/trending/movie/week' },
+  diziler: { type: 'tv', title: 'Popüler Diziler', endpoint: '/tv/popular' },
+  'diziler/en-iyi': { type: 'tv', title: 'En İyi Diziler', endpoint: '/tv/top_rated' },
+  'diziler/yayinda': { type: 'tv', title: 'Yayındaki Diziler', endpoint: '/tv/on_the_air' },
+  'diziler/bugun': { type: 'tv', title: 'Bugün Yayınlanan Diziler', endpoint: '/tv/airing_today' },
+};
+
 const app = document.getElementById('app');
 const searchInput = document.getElementById('search');
 const menuToggle = document.getElementById('menuToggle');
@@ -86,19 +137,49 @@ function showError(error) {
   if (error) console.error(error);
 }
 
+function closeNavGroups() {
+  mainNav.querySelectorAll('.nav-group.open').forEach((group) => {
+    group.classList.remove('open');
+    const toggle = group.querySelector('.nav-toggle');
+    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+  });
+}
+
 function closeMenu() {
   menuToggle.setAttribute('aria-expanded', 'false');
   menuToggle.setAttribute('aria-label', 'Menüyü aç');
   mainNav.classList.remove('open');
+  closeNavGroups();
 }
 
 function updateNav(section) {
-  mainNav.querySelectorAll('a').forEach((link) => {
-    const active = link.dataset.nav === section;
-    link.classList.toggle('active', active);
-    if (active) link.setAttribute('aria-current', 'page');
-    else link.removeAttribute('aria-current');
+  mainNav.querySelectorAll('[data-nav]').forEach((item) => {
+    const active = item.dataset.nav === section;
+    item.classList.toggle('active', active);
+    if (active) item.setAttribute('aria-current', 'page');
+    else item.removeAttribute('aria-current');
   });
+}
+
+function buildNav() {
+  const moviesPanel = document.getElementById('navMovies');
+  const showsPanel = document.getElementById('navShows');
+  const genresPanel = document.getElementById('navGenres');
+  const yearsPanel = document.getElementById('navYears');
+  if (!moviesPanel || !showsPanel || !genresPanel || !yearsPanel) return;
+
+  moviesPanel.innerHTML = MOVIE_FILTERS
+    .map((item) => `<a href="#/${item.key}">${esc(item.label)}</a>`)
+    .join('');
+  showsPanel.innerHTML = TV_FILTERS
+    .map((item) => `<a href="#/${item.key}">${esc(item.label)}</a>`)
+    .join('');
+  genresPanel.innerHTML = GENRES
+    .map((genre) => `<a href="#/tur/${genre.key}">${esc(genre.name)}</a>`)
+    .join('') + '<a class="nav-all" href="#/turler">Tüm Türler →</a>';
+  yearsPanel.innerHTML = YEARS
+    .map((year) => `<a href="#/yil/${year}">${year}</a>`)
+    .join('');
 }
 
 async function tmdb(path, params = {}) {
@@ -135,10 +216,12 @@ function cardHTML(item, type) {
 async function renderHome(token) {
   app.innerHTML = '<div class="loader">Yükleniyor…</div>';
   try {
-    const [trending, movies, shows] = await Promise.all([
+    const [trending, nowPlaying, movies, shows, topShows] = await Promise.all([
       tmdb('/trending/all/week'),
+      tmdb('/movie/now_playing', { region: 'TR' }),
       tmdb('/movie/popular'),
       tmdb('/tv/popular'),
+      tmdb('/tv/top_rated'),
     ]);
     if (token !== renderToken) return;
 
@@ -148,6 +231,13 @@ async function renderHome(token) {
       <section class="row-section">
         <div class="section-head"><h2>Bu Hafta Trend</h2></div>
         <div class="row">${trend.map((item) => cardHTML(item, item.media_type)).join('')}</div>
+      </section>
+      <section class="row-section">
+        <div class="section-head">
+          <h2>Vizyondakiler</h2>
+          <a class="see-all" href="#/filmler/vizyonda">Tümü →</a>
+        </div>
+        <div class="row">${(nowPlaying.results || []).map((item) => cardHTML(item, 'movie')).join('')}</div>
       </section>
       <section class="row-section">
         <div class="section-head">
@@ -162,6 +252,13 @@ async function renderHome(token) {
           <a class="see-all" href="#/diziler">Tümü →</a>
         </div>
         <div class="row">${(shows.results || []).map((item) => cardHTML(item, 'tv')).join('')}</div>
+      </section>
+      <section class="row-section">
+        <div class="section-head">
+          <h2>En İyi Diziler</h2>
+          <a class="see-all" href="#/diziler/en-iyi">Tümü →</a>
+        </div>
+        <div class="row">${(topShows.results || []).map((item) => cardHTML(item, 'tv')).join('')}</div>
       </section>`;
     document.title = 'FilmKatalog — Film ve Dizi Kataloğu';
   } catch (error) {
@@ -280,57 +377,141 @@ async function renderTv(id, season, episode, token) {
   }
 }
 
-async function renderList(type, token) {
-  const isMovie = type === 'movie';
-  const endpoint = isMovie ? '/movie/popular' : '/tv/popular';
-  const heading = isMovie ? 'Filmler' : 'Diziler';
+function listTabs(type, activeKey) {
+  const source = type === 'movie' ? MOVIE_FILTERS : TV_FILTERS;
+  return source.map((item) => ({
+    label: item.label,
+    href: '#/' + item.key,
+    active: item.key === activeKey,
+  }));
+}
 
+async function renderList(config, key, token) {
+  await renderBrowse({
+    title: config.title,
+    endpoint: config.endpoint,
+    params: config.params,
+    type: config.type,
+    tabs: listTabs(config.type, key),
+    token,
+  });
+}
+
+async function renderBrowse({ title, endpoint, params = {}, type, tabs, token }) {
   app.innerHTML = '<div class="loader">Yükleniyor…</div>';
   try {
-    const data = await tmdb(endpoint);
+    const data = await tmdb(endpoint, { ...params, page: 1 });
     if (token !== renderToken) return;
 
+    const results = data.results || [];
     let page = data.page || 1;
     const totalPages = data.total_pages || 1;
+    const tabsHtml = tabs && tabs.length
+      ? `<div class="filter-tabs">${tabs.map((tab) => `<a class="filter-tab${tab.active ? ' active' : ''}" href="${tab.href}">${esc(tab.label)}</a>`).join('')}</div>`
+      : '';
 
     app.innerHTML = `
       <section class="search-section">
-        <h2>${heading}</h2>
-        <div class="grid" id="listGrid">${(data.results || []).map((item) => cardHTML(item, type)).join('')}</div>
+        <h2>${esc(title)}</h2>
+        ${tabsHtml}
+        <div class="grid" id="listGrid">${results.map((item) => cardHTML(item, type)).join('')}</div>
+        ${results.length ? '' : '<div class="empty">Bu listede içerik bulunamadı.</div>'}
         <div class="more-wrap">${page < totalPages ? '<button class="more-btn" id="moreBtn" type="button">Daha fazla</button>' : ''}</div>
       </section>`;
-    document.title = `${heading} — FilmKatalog`;
+    document.title = `${title} — FilmKatalog`;
 
-    const moreBtn = document.getElementById('moreBtn');
-    if (moreBtn) {
-      moreBtn.addEventListener('click', async () => {
-        moreBtn.disabled = true;
-        moreBtn.textContent = 'Yükleniyor…';
-        try {
-          const next = await tmdb(endpoint, { page: page + 1 });
-          if (token !== renderToken) return;
-          page = next.page || page + 1;
-          document.getElementById('listGrid').insertAdjacentHTML(
-            'beforeend',
-            (next.results || []).map((item) => cardHTML(item, type)).join('')
-          );
-          if (page >= (next.total_pages || totalPages)) {
-            moreBtn.remove();
-          } else {
-            moreBtn.disabled = false;
-            moreBtn.textContent = 'Daha fazla';
-          }
-        } catch (error) {
-          moreBtn.disabled = false;
-          moreBtn.textContent = 'Tekrar dene';
-          console.error(error);
-        }
-      });
-    }
+    bindLoadMore({ endpoint, params, page, totalPages, type, token });
   } catch (error) {
     if (token !== renderToken) return;
     showError(error);
   }
+}
+
+function bindLoadMore({ endpoint, params, page, totalPages, type, token }) {
+  const moreBtn = document.getElementById('moreBtn');
+  if (!moreBtn) return;
+  moreBtn.addEventListener('click', async () => {
+    moreBtn.disabled = true;
+    moreBtn.textContent = 'Yükleniyor…';
+    try {
+      const next = await tmdb(endpoint, { ...params, page: page + 1 });
+      if (token !== renderToken) return;
+      page = next.page || page + 1;
+      const grid = document.getElementById('listGrid');
+      if (!grid) return;
+      grid.insertAdjacentHTML('beforeend', (next.results || []).map((item) => cardHTML(item, type)).join(''));
+      if (page >= (next.total_pages || totalPages)) {
+        moreBtn.remove();
+      } else {
+        moreBtn.disabled = false;
+        moreBtn.textContent = 'Daha fazla';
+      }
+    } catch (error) {
+      moreBtn.disabled = false;
+      moreBtn.textContent = 'Tekrar dene';
+      console.error(error);
+    }
+  });
+}
+
+async function renderGenre(key, type, token) {
+  const genre = GENRES.find((item) => item.key === key);
+  if (!genre) {
+    app.innerHTML = '<div class="empty">Tür bulunamadı.</div>';
+    return;
+  }
+  if (type === 'tv' && !genre.tv) {
+    location.replace('#/tur/' + key);
+    return;
+  }
+
+  const isTv = type === 'tv';
+  const tabs = [{ label: 'Filmler', href: `#/tur/${key}`, active: !isTv }];
+  if (genre.tv) tabs.push({ label: 'Diziler', href: `#/tur/${key}/diziler`, active: isTv });
+
+  await renderBrowse({
+    title: `${genre.name} ${isTv ? 'Dizileri' : 'Filmleri'}`,
+    endpoint: isTv ? '/discover/tv' : '/discover/movie',
+    params: { with_genres: isTv ? genre.tv : genre.movie, sort_by: 'popularity.desc' },
+    type: isTv ? 'tv' : 'movie',
+    tabs,
+    token,
+  });
+}
+
+async function renderYear(year, type, token) {
+  if (!Number.isFinite(year) || year < 1900 || year > 2100) {
+    app.innerHTML = '<div class="empty">Geçersiz yıl.</div>';
+    return;
+  }
+
+  const isTv = type === 'tv';
+  const tabs = [
+    { label: 'Filmler', href: `#/yil/${year}`, active: !isTv },
+    { label: 'Diziler', href: `#/yil/${year}/diziler`, active: isTv },
+  ];
+
+  await renderBrowse({
+    title: `${year} ${isTv ? 'Dizileri' : 'Filmleri'}`,
+    endpoint: isTv ? '/discover/tv' : '/discover/movie',
+    params: isTv
+      ? { first_air_date_year: year, sort_by: 'popularity.desc' }
+      : { primary_release_year: year, sort_by: 'popularity.desc' },
+    type: isTv ? 'tv' : 'movie',
+    tabs,
+    token,
+  });
+}
+
+function renderGenres() {
+  app.innerHTML = `
+    <section class="search-section">
+      <h2>Tüm Türler</h2>
+      <div class="genre-grid">
+        ${GENRES.map((genre) => `<a class="genre-card" href="#/tur/${genre.key}"><span>${esc(genre.name)}</span><span class="genre-card-arrow">→</span></a>`).join('')}
+      </div>
+    </section>`;
+  document.title = 'Tüm Türler — FilmKatalog';
 }
 
 async function runSearch(query, token) {
@@ -379,14 +560,27 @@ async function route() {
     await renderHome(token);
     return;
   }
-  if (parts[0] === 'filmler') {
-    updateNav('movies');
-    await renderList('movie', token);
+  if (parts[0] === 'filmler' || parts[0] === 'diziler') {
+    const key = parts.join('/');
+    const config = LIST_CONFIG[key];
+    const activeKey = config ? key : parts[0];
+    updateNav(parts[0] === 'filmler' ? 'movies' : 'shows');
+    await renderList(config || LIST_CONFIG[parts[0]], activeKey, token);
     return;
   }
-  if (parts[0] === 'diziler') {
-    updateNav('shows');
-    await renderList('tv', token);
+  if (parts[0] === 'turler') {
+    updateNav('genres');
+    renderGenres();
+    return;
+  }
+  if (parts[0] === 'tur' && parts[1]) {
+    updateNav('genres');
+    await renderGenre(parts[1], parts[2] === 'diziler' ? 'tv' : 'movie', token);
+    return;
+  }
+  if (parts[0] === 'yil' && parts[1]) {
+    updateNav('years');
+    await renderYear(Number(parts[1]), parts[2] === 'diziler' ? 'tv' : 'movie', token);
     return;
   }
   if (parts[0] === 'film' && parts[1]) {
@@ -415,13 +609,30 @@ searchInput.addEventListener('input', () => {
 });
 
 menuToggle.addEventListener('click', () => {
-  const open = menuToggle.getAttribute('aria-expanded') === 'true';
-  menuToggle.setAttribute('aria-expanded', String(!open));
-  menuToggle.setAttribute('aria-label', open ? 'Menüyü aç' : 'Menüyü kapat');
-  mainNav.classList.toggle('open', !open);
+  const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
+  if (isOpen) {
+    closeMenu();
+    return;
+  }
+  closeNavGroups();
+  menuToggle.setAttribute('aria-expanded', 'true');
+  menuToggle.setAttribute('aria-label', 'Menüyü kapat');
+  mainNav.classList.add('open');
 });
 
 mainNav.addEventListener('click', (event) => {
+  const toggle = event.target.closest('.nav-toggle');
+  if (toggle) {
+    const group = toggle.closest('.nav-group');
+    const wasOpen = group.classList.contains('open');
+    closeNavGroups();
+    if (!wasOpen) {
+      group.classList.add('open');
+      toggle.setAttribute('aria-expanded', 'true');
+    }
+    return;
+  }
+
   const link = event.target.closest('a');
   if (!link) return;
   closeMenu();
@@ -439,7 +650,6 @@ logo.addEventListener('click', (event) => {
 });
 
 document.addEventListener('click', (event) => {
-  if (!mainNav.classList.contains('open')) return;
   if (mainNav.contains(event.target) || menuToggle.contains(event.target)) return;
   closeMenu();
 });
@@ -450,4 +660,5 @@ document.addEventListener('keydown', (event) => {
 
 window.addEventListener('hashchange', route);
 
+buildNav();
 route();

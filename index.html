@@ -28,13 +28,68 @@
         <span></span>
       </button>
       <nav class="main-nav" id="mainNav" aria-label="Ana menü">
-        <a href="#/" data-nav="home">Ana Sayfa</a>
-        <a href="#/filmler" data-nav="movies">Filmler</a>
-        <a href="#/diziler" data-nav="shows">Diziler</a>
+        <a class="nav-link" href="#/" data-nav="home">Ana Sayfa</a>
+        <div class="nav-group">
+          <button class="nav-toggle" type="button" aria-expanded="false" data-nav="movies" aria-controls="navMovies">Filmler<span class="caret" aria-hidden="true"></span></button>
+          <div class="nav-panel" id="navMovies"></div>
+        </div>
+        <div class="nav-group">
+          <button class="nav-toggle" type="button" aria-expanded="false" data-nav="shows" aria-controls="navShows">Diziler<span class="caret" aria-hidden="true"></span></button>
+          <div class="nav-panel" id="navShows"></div>
+        </div>
+        <div class="nav-group nav-group--wide">
+          <button class="nav-toggle" type="button" aria-expanded="false" data-nav="genres" aria-controls="navGenres">Türler<span class="caret" aria-hidden="true"></span></button>
+          <div class="nav-panel nav-panel--grid" id="navGenres"></div>
+        </div>
+        <div class="nav-group nav-group--wide">
+          <button class="nav-toggle" type="button" aria-expanded="false" data-nav="years" aria-controls="navYears">Yıllar<span class="caret" aria-hidden="true"></span></button>
+          <div class="nav-panel nav-panel--grid" id="navYears"></div>
+        </div>
       </nav>
       <input id="search" type="search" placeholder="Film veya dizi ara…" autocomplete="off" aria-label="Film veya dizi ara">
     </div>
   </header>
   <main id="app"></main>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a class="logo" href="#/">Film<span>Katalog</span></a>
+        <p>Film ve dizileri keşfet; türlere, yıllara ve popüler listelere göz at.</p>
+      </div>
+      <div class="footer-col">
+        <h3>Filmler</h3>
+        <a href="#/filmler">Popüler</a>
+        <a href="#/filmler/en-iyi">En İyi</a>
+        <a href="#/filmler/vizyonda">Vizyonda</a>
+        <a href="#/filmler/yakinda">Yakında</a>
+        <a href="#/filmler/trend">Trend</a>
+      </div>
+      <div class="footer-col">
+        <h3>Diziler</h3>
+        <a href="#/diziler">Popüler</a>
+        <a href="#/diziler/en-iyi">En İyi</a>
+        <a href="#/diziler/yayinda">Yayında</a>
+        <a href="#/diziler/bugun">Bugün</a>
+      </div>
+      <div class="footer-col">
+        <h3>Türler</h3>
+        <a href="#/tur/aksiyon">Aksiyon</a>
+        <a href="#/tur/komedi">Komedi</a>
+        <a href="#/tur/dram">Dram</a>
+        <a href="#/tur/korku">Korku</a>
+        <a href="#/tur/bilim-kurgu">Bilim Kurgu</a>
+        <a href="#/turler">Tüm Türler</a>
+      </div>
+      <div class="footer-col">
+        <h3>Yıllar</h3>
+        <a href="#/yil/2026">2026</a>
+        <a href="#/yil/2025">2025</a>
+        <a href="#/yil/2024">2024</a>
+        <a href="#/yil/2023">2023</a>
+        <a href="#/yil/2022">2022</a>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2026 FilmKatalog · Veriler TMDB'den alınmıştır.</div>
+  </footer>
 </body>
 </html>

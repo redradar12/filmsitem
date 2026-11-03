@@ -7,8 +7,8 @@ const PLACEHOLDER = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
 );
 
 const SERVERS = [
-  { n: 'Sunucu 1', m: 'https://vidlink.pro/movie/{id}', t: 'https://vidlink.pro/tv/{id}/{s}/{e}' },
-  { n: 'Sunucu 2', m: 'https://vidsrc.to/embed/movie/{id}', t: 'https://vidsrc.to/embed/tv/{id}/{s}/{e}' },
+  { n: 'Sunucu 1', m: 'https://vidsrc.to/embed/movie/{id}', t: 'https://vidsrc.to/embed/tv/{id}/{s}/{e}' },
+  { n: 'Sunucu 2', m: 'https://vidlink.pro/movie/{id}', t: 'https://vidlink.pro/tv/{id}/{s}/{e}' },
   { n: 'Sunucu 3', m: 'https://vidsrc.me/embed/movie?tmdb={id}', t: 'https://vidsrc.me/embed/tv?tmdb={id}&season={s}&episode={e}' },
   { n: 'Sunucu 4', m: 'https://embed.su/embed/movie/{id}', t: 'https://embed.su/embed/tv/{id}/{s}/{e}' },
   { n: 'Sunucu 5', m: 'https://www.2embed.cc/embed/{id}', t: 'https://www.2embed.cc/embedtv/{id}&s={s}&e={e}' },

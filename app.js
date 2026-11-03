@@ -197,7 +197,7 @@ async function renderMovie(id, token) {
           </div>
         </div>
         <div class="player">
-          <iframe id="player" src="${buildEmbed(0, 'movie', data.id)}" title="${esc(title)}" allowfullscreen referrerpolicy="origin"></iframe>
+          <iframe id="player" src="${buildEmbed(0, 'movie', data.id)}" title="${esc(title)}" allowfullscreen referrerpolicy="origin" sandbox="allow-scripts allow-same-origin allow-forms allow-presentation" allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>
         </div>
         <div class="servers" id="servers">${serverButtons(0)}</div>
       </article>`;
@@ -264,7 +264,7 @@ async function renderTv(id, season, episode, token) {
           </div>
         </div>
         <div class="player">
-          <iframe id="player" src="${buildEmbed(0, 'tv', data.id, season, episode)}" title="${esc(title)} — S${season} B${episode}" allowfullscreen referrerpolicy="origin"></iframe>
+          <iframe id="player" src="${buildEmbed(0, 'tv', data.id, season, episode)}" title="${esc(title)} — S${season} B${episode}" allowfullscreen referrerpolicy="origin" sandbox="allow-scripts allow-same-origin allow-forms allow-presentation" allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>
         </div>
         <div class="servers" id="servers">${serverButtons(0)}</div>
         <h2 class="season-title">Bölümler</h2>

@@ -407,6 +407,12 @@ main {
   text-align: center;
 }
 
+.tmdb-credit {
+  margin-top: 4px;
+  font-size: .72rem;
+  opacity: .8;
+}
+
 .row-section {
   margin-top: 22px;
 }
